@@ -434,13 +434,21 @@ int16_t SX126x::scanChannel(uint8_t symbolNum, uint8_t detPeak, uint8_t detMin) 
   int state = startChannelScan(symbolNum, detPeak, detMin);
   RADIOLIB_ASSERT(state);
 
-  // wait for channel activity detected or timeout
-  while(!this->mod->hal->digitalRead(this->mod->getIrq())) {
-    this->mod->hal->yield();
-  }
-
   // check CAD result
-  return(getChannelScanResult());
+  uint16_t res = getIrqStatus();
+  auto is_done = res & RADIOLIB_SX126X_IRQ_CAD_DONE;
+  while(!is_done){
+    mod->hal->yield();
+    res = getIrqStatus();
+  }
+  clearIrqStatus();
+  if(res & RADIOLIB_SX126X_IRQ_CAD_DETECTED) {
+    // detected some LoRa activity
+    return(RADIOLIB_LORA_DETECTED);
+  } else if(res & RADIOLIB_SX126X_IRQ_CAD_DONE) {
+    return(RADIOLIB_CHANNEL_FREE);
+  }
+  return(RADIOLIB_ERR_UNKNOWN);
 }
 
 int16_t SX126x::sleep(bool retainConfig) {
