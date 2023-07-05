@@ -236,12 +236,8 @@ int16_t SX126x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   // get currently active modem
   uint8_t modem = getPacketType();
   if(modem == RADIOLIB_SX126X_PACKET_TYPE_LORA) {
-    // calculate timeout (150% of expected time-on-air)
-    timeout = (getTimeOnAir(len) * 3) / 2;
-
-  } else if(modem == RADIOLIB_SX126X_PACKET_TYPE_GFSK) {
-    // calculate timeout (500% of expected time-on-air)
-    timeout = getTimeOnAir(len) * 5;
+    // just wait for Time On Air
+    timeout = getTimeOnAir(len);
 
   } else {
     return(RADIOLIB_ERR_UNKNOWN);
@@ -254,18 +250,22 @@ int16_t SX126x::transmit(uint8_t* data, size_t len, uint8_t addr) {
   RADIOLIB_ASSERT(state);
 
   // wait for packet transmission or timeout
-  uint32_t start = this->mod->hal->micros();
-  while(!this->mod->hal->digitalRead(this->mod->getIrq())) {
-    this->mod->hal->yield();
-    if(this->mod->hal->micros() - start > timeout) {
-      finishTransmit();
-      return(RADIOLIB_ERR_TX_TIMEOUT);
-    }
-  }
-  uint32_t elapsed = this->mod->hal->micros() - start;
+  // since I turned off the transmitting done interrupt in DIO1
+  // I just wait for the timeout...
+//  uint32_t start = this->mod->hal->micros();
+//  while(true) {
+//    this->mod->hal->yield();
+//    if(this->mod->hal->micros() - start > timeout) {
+//      // return(RADIOLIB_ERR_TX_TIMEOUT);
+//    }
+//  }
+//  uint32_t elapsed = this->mod->hal->micros() - start;
+  // auto timeout_ms = timeout / 1000;
+  mod->hal->delayMicroseconds(timeout);
+  finishTransmit();
 
-  // update data rate
-  this->dataRateMeasured = (len*8.0)/((float)elapsed/1000000.0);
+  // getDataRate is useless...
+  // this->dataRateMeasured = (len*8.0)/((float)elapsed/1000000.0);
 
   return(finishTransmit());
 }
@@ -535,7 +535,8 @@ int16_t SX126x::startTransmit(uint8_t* data, size_t len, uint8_t addr) {
   RADIOLIB_ASSERT(state);
 
   // set DIO mapping
-  state = setDioIrqParams(RADIOLIB_SX126X_IRQ_TX_DONE | RADIOLIB_SX126X_IRQ_TIMEOUT, RADIOLIB_SX126X_IRQ_TX_DONE);
+  // Don't touch DIO when transmitting.
+  // state = setDioIrqParams(RADIOLIB_SX126X_IRQ_TX_DONE | RADIOLIB_SX126X_IRQ_TIMEOUT, RADIOLIB_SX126X_IRQ_TX_DONE);
   RADIOLIB_ASSERT(state);
 
   // set buffer pointers
