@@ -56,6 +56,8 @@ APRSClient	KEYWORD1
 PagerClient	KEYWORD1
 ExternalRadio	KEYWORD1
 BellClient	KEYWORD1
+LoRaWANNode	KEYWORD1
+LoRaWANBand_t	KEYWORD1
 
 # SSTV modes
 Scottie1	KEYWORD1
@@ -72,6 +74,17 @@ PasokonP7	KEYWORD1
 Bell101	KEYWORD1
 Bell103	KEYWORD1
 Bell202	KEYWORD1
+
+# LoRaWAN bands
+EU868	KEYWORD1
+US915	KEYWORD1
+CN780	KEYWORD1
+EU433	KEYWORD1
+AU915	KEYWORD1
+CN500	KEYWORD1
+AS923	KEYWORD1
+KR920	KEYWORD1
+IN865	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -269,9 +282,17 @@ setPacketReceivedAction	KEYWORD2
 clearPacketReceivedAction	KEYWORD2
 setPacketSentAction	KEYWORD2
 clearPacketSentAction	KEYWORD2
+setDataRate	KEYWORD2
 
 # BellModem
 setModem	KEYWORD2
+
+# LoRaWAN
+wipe	KEYWORD2
+beginOTAA	KEYWORD2
+beginAPB	KEYWORD2
+uplink	KEYWORD2
+configureChannel	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)

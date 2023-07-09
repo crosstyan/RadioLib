@@ -4,8 +4,32 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "BuildOpt.h"
+
+// list of persistent parameters
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_DEV_NONCE_ID    (0)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_DEV_ADDR_ID     (1)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_FCNT_UP_ID      (2)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_MAGIC_ID        (3)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_APP_S_KEY_ID    (4)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_FNWK_SINT_KEY_ID (5)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_SNWK_SINT_KEY_ID (6)
+#define RADIOLIB_PERSISTENT_PARAM_LORAWAN_NWK_SENC_KEY_ID (7)
+
+static const uint32_t RadioLibPersistentParamTable[] = {
+  0x00,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_DEV_NONCE_ID
+  0x04,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_DEV_ADDR_ID
+  0x08,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_FCNT_UP_ID
+  0x0C,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_MAGIC_ID
+  0x10,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_APP_S_KEY_ID
+  0x20,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_FNWK_SINT_KEY_ID
+  0x30,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_SNWK_SINT_KEY_ID
+  0x40,   // RADIOLIB_PERSISTENT_PARAM_LORAWAN_NWK_SENC_KEY_ID
+  0x50,   // end
+};
+
 /*!
-  \class Hal
+  \class RadioLibHal
   \brief Hardware abstraction library base interface.
 */
 class RadioLibHal {
@@ -205,6 +229,50 @@ class RadioLibHal {
       \returns The interrupt number of a given pin.
     */
     virtual uint32_t pinToInterrupt(uint32_t pin);
+
+    /*!
+      \brief Method to read from persistent storage (e.g. EEPROM).
+      \param addr Address to start reading at.
+      \param buff Buffer to read into.
+      \param len Number of bytes to read.
+    */
+    virtual void readPersistentStorage(uint32_t addr, uint8_t* buff, size_t len);
+
+    /*!
+      \brief Method to write to persistent storage (e.g. EEPROM).
+      \param addr Address to start writing to.
+      \param buff Buffer to write.
+      \param len Number of bytes to write.
+    */
+    virtual void writePersistentStorage(uint32_t addr, uint8_t* buff, size_t len);
+
+    /*!
+      \brief Method to wipe the persistent storage by writing to 0.
+      Will write at most RADIOLIB_HAL_PERSISTENT_STORAGE_SIZE bytes.
+    */
+    void wipePersistentStorage();
+
+    uint32_t getPersistentAddr(uint32_t id);
+
+    /*!
+      \brief Method to set arbitrary parameter to persistent storage.
+      This method DOES NOT perform any endianness conversion, so the value
+      will be stored in the system endian!
+      \param id Parameter ID to save at.
+      \param val Value to set.
+    */
+    template<typename T>
+    void setPersistentParameter(uint32_t id, T val);
+
+    /*!
+      \brief Method to get arbitrary parameter from persistent storage.
+      This method DOES NOT perform any endianness conversion, so the value
+      will be retrieved in the system endian!
+      \param id Parameter ID to load from.
+      \returns The lodaded value.
+    */
+    template<typename T>
+    T getPersistentParameter(uint32_t id);
 };
 
 #endif
